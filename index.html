@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- Tarrant Recon's QuickBooks redirect page (RQ11, ADR-R4). Static: it loads nothing, sends
+nothing and stores nothing. Intuit sends the browser here after sign-in; the page shows the
+address to paste into the Recon terminal prompt (with its code, state and realmId), then clears
+the address bar. Host it as is (GitHub Pages or tarrantroofing.com) at the address set in
+config/settings.yaml sources.qbo.redirect_uris.production and registered with Intuit.
+The Content-Security-Policy hashes must match the script and style below exactly;
+tests/test_redirect_page.py checks them. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-jDtFzm998i2QK+3jIkp2hZxN5b3NIcmvQN4bNYxtOWI='; style-src 'sha256-ooyUAGw/74xscP2AOOtpsHCqM7TJe/i7VyWU9Xhxh/I='; base-uri 'none'; form-action 'none'">
+<title>Recon sign-in</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 16px; color: #1b1f24; background: #fff; }
+  main { max-width: 40rem; margin: 2rem auto; }
+  textarea { width: 100%; box-sizing: border-box; font: 14px ui-monospace, monospace; }
+  dt { font-weight: 600; } dd { margin: 0 0 .5rem; font-family: ui-monospace, monospace; word-break: break-all; }
+  #error { color: #b42318; font-weight: 600; }
+  .note { color: #57606a; font-size: 14px; }
+  @media (prefers-color-scheme: dark) { body { color: #e6edf3; background: #0d1117; } .note { color: #9da7b3; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Tarrant Recon: QuickBooks sign-in</h1>
+<p>Copy the address below and paste it into the Recon terminal prompt, then close this tab.</p>
+<p id="error" hidden></p>
+<label for="address">Address to paste</label>
+<textarea id="address" readonly rows="4"></textarea>
+<p><button id="copy" type="button">Copy</button></p>
+<dl>
+<dt>code</dt><dd id="code">-</dd>
+<dt>state</dt><dd id="state">-</dd>
+<dt>realmId</dt><dd id="realm">-</dd>
+</dl>
+<p class="note">This page loads nothing and sends nothing. The code works once, for a few
+minutes, and only together with Tarrant Recon's own secret and sign-in.</p>
+</main>
+<script>
+(function () {
+  var href = window.location.href;
+  var q = new URLSearchParams(window.location.search);
+  function show(id, value) { document.getElementById(id).textContent = value || "-"; }
+  show("code", q.get("code"));
+  show("state", q.get("state"));
+  show("realm", q.get("realmId"));
+  document.getElementById("address").value = href;
+  if (q.get("error")) {
+    var e = document.getElementById("error");
+    e.textContent = "QuickBooks refused the sign-in: " + q.get("error");
+    e.hidden = false;
+  }
+  window.history.replaceState(null, "", window.location.pathname);
+  document.getElementById("copy").addEventListener("click", function () {
+    var box = document.getElementById("address");
+    box.select();
+    if (navigator.clipboard) { navigator.clipboard.writeText(box.value); }
+  });
+})();
+</script>
+</body>
+</html>
